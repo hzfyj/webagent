@@ -1,0 +1,11 @@
+<service>
+  <id>ClaudeCliGateway</id>
+  <name>Claude CLI Gateway</name>
+  <description>Internal HTTP and SSE gateway for the local Claude CLI.</description>
+  <executable>C:\Program Files\nodejs\node.exe</executable>
+  <arguments>dist\src\server.js</arguments>
+  <workingdirectory>C:\claude_agent</workingdirectory>
+  <log mode="roll" />
+  <onfailure action="restart" delay="10 sec" />
+  <startmode>Automatic</startmode>
+</service>

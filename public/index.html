@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Claude CLI Gateway</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-mark">CC</div>
+          <div>
+            <h1>Claude CLI Gateway</h1>
+            <p>本地问答调试台</p>
+          </div>
+        </div>
+
+        <section class="panel">
+          <h2>连接</h2>
+          <label class="field">
+            <span>User ID</span>
+            <input id="userId" type="text" autocomplete="off" />
+          </label>
+          <label class="field">
+            <span>Skill</span>
+            <select id="skillSelect"></select>
+          </label>
+          <div class="actions">
+            <button id="refreshSkillsBtn" class="ghost">刷新 Skills</button>
+            <button id="newSessionBtn">新建 Session</button>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>历史会话</h2>
+          <div class="actions">
+            <button id="refreshSessionsBtn" class="ghost">刷新历史</button>
+          </div>
+          <div id="sessionList" class="session-list"></div>
+        </section>
+
+        <section class="panel">
+          <h2>状态</h2>
+          <div class="status-grid">
+            <div>
+              <span class="label">Session</span>
+              <code id="sessionIdLabel">未创建</code>
+            </div>
+            <div>
+              <span class="label">Livez</span>
+              <code id="livezLabel">-</code>
+            </div>
+            <div>
+              <span class="label">Readyz</span>
+              <code id="readyzLabel">-</code>
+            </div>
+          </div>
+          <div class="actions">
+            <button id="healthBtn" class="ghost">检查健康</button>
+            <button id="clearChatBtn" class="ghost">清空消息</button>
+          </div>
+        </section>
+      </aside>
+
+      <main class="chat-area">
+        <header class="chat-header">
+          <div>
+            <h2>对话</h2>
+            <p>支持普通请求和流式 SSE 渲染</p>
+          </div>
+          <div class="mode-switch">
+            <label>
+              <input id="streamMode" type="checkbox" checked />
+              <span>流式模式</span>
+            </label>
+          </div>
+        </header>
+
+        <section id="messageList" class="message-list"></section>
+
+        <form id="composerForm" class="composer">
+          <label class="field grow">
+            <span>消息</span>
+            <textarea
+              id="messageInput"
+              rows="4"
+              placeholder="输入消息后发送，例如：请用三句话总结今天的接口状态。"
+            ></textarea>
+          </label>
+          <div class="composer-actions">
+            <div id="activityIndicator" class="activity-indicator" aria-live="polite" hidden>
+              <span class="activity-dot"></span>
+              <span id="activityText">正在思考</span>
+            </div>
+            <button id="sendBtn" type="submit">发送</button>
+          </div>
+        </form>
+      </main>
+    </div>
+
+    <template id="messageTemplate">
+      <article class="message">
+        <div class="message-meta">
+          <span class="role"></span>
+          <span class="extra"></span>
+        </div>
+        <pre class="message-body"></pre>
+      </article>
+    </template>
+
+    <script src="/app.js" defer></script>
+  </body>
+</html>
