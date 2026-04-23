@@ -1,0 +1,21 @@
+[Unit]
+Description=Claude CLI Gateway
+After=network.target redis.service
+Wants=network.target
+
+[Service]
+Type=simple
+User=claude-gateway
+Group=claude-gateway
+WorkingDirectory=/opt/claude-cli-gateway
+Environment=NODE_ENV=production
+EnvironmentFile=/opt/claude-cli-gateway/.env
+ExecStart=/usr/bin/env node dist/src/server.js
+Restart=always
+RestartSec=5
+KillSignal=SIGINT
+TimeoutStopSec=30
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

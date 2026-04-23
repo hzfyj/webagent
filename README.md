@@ -1,6 +1,6 @@
 # Claude CLI Gateway
 
-Windows-friendly internal HTTP/SSE gateway that wraps the local `claude` CLI for multi-user text Q&A.
+Internal HTTP/SSE gateway that wraps the local `claude` CLI for multi-user text Q&A. The app code is cross-platform; Windows and Linux mainly differ in deployment tooling.
 
 ## Features
 
@@ -11,7 +11,7 @@ Windows-friendly internal HTTP/SSE gateway that wraps the local `claude` CLI for
 - `DELETE /api/v1/sessions/:sessionId` to close sessions
 - Redis-backed session persistence and concurrency control
 - API-key auth and user attribution headers
-- Claude CLI health checks and Windows service wrapper sample
+- Claude CLI health checks and service wrapper samples for Windows and Linux
 
 ## Quick start
 
@@ -24,12 +24,21 @@ Windows-friendly internal HTTP/SSE gateway that wraps the local `claude` CLI for
 2. Copy env file and adjust values:
 
    ```bash
-   copy .env.example .env
+   cp .env.example .env
    ```
 
 3. Make sure `claude` CLI is already authenticated on this machine.
 
-4. For local Windows development, use the bundled helper scripts:
+4. Build and start manually when Redis is already available:
+
+   ```bash
+   npm run build
+   node dist/src/server.js
+   ```
+
+## Windows local development
+
+Use the bundled helper scripts:
 
    ```powershell
    powershell -ExecutionPolicy Bypass -File .\scripts\dev-start.ps1
@@ -45,13 +54,6 @@ Windows-friendly internal HTTP/SSE gateway that wraps the local `claude` CLI for
    ```powershell
    powershell -ExecutionPolicy Bypass -File .\scripts\dev-status.ps1
    powershell -ExecutionPolicy Bypass -File .\scripts\dev-stop.ps1
-   ```
-
-6. If you want to run the gateway manually after Redis is already available:
-
-   ```bash
-   npm run build
-   node dist/src/server.js
    ```
 
 ## Skills
@@ -70,6 +72,67 @@ Skills are loaded from the JSON file configured by `SKILLS_FILE`. Only listed sk
 - executable: `node.exe`
 - arguments: `dist/src/server.js`
 - working directory: this project root
+
+## Linux deployment
+
+Linux does not require code changes. Replace the Windows helper pieces with:
+
+- `linux/claude-cli-gateway.service`: sample `systemd` unit
+- `scripts/deploy-linux.sh`: deployment helper that installs dependencies, builds, installs the unit, and restarts the service
+
+Recommended target layout:
+
+```text
+/opt/claude-cli-gateway
+  |- .env
+  |- dist/
+  |- node_modules/
+  |- skills/
+  |- linux/claude-cli-gateway.service
+```
+
+Example Linux `.env` values:
+
+```dotenv
+PORT=8080
+HOST=0.0.0.0
+API_KEYS=replace-with-real-service-key
+REDIS_URL=redis://127.0.0.1:6379
+SESSION_TTL_SECONDS=86400
+USER_CONCURRENCY_LIMIT=3
+CLAUDE_COMMAND=claude
+CLAUDE_MODEL=sonnet
+CLAUDE_WORKDIR=/opt/claude-cli-gateway/.runtime/claude-workdir
+CLAUDE_TIMEOUT_MS=300000
+CLAUDE_IDLE_TIMEOUT_MS=3600000
+SKILLS_FILE=/opt/claude-cli-gateway/skills/default-skills.json
+```
+
+Suggested server preparation:
+
+1. Install Node.js 24+, npm, Redis, and the `claude` CLI.
+2. Copy this project to `/opt/claude-cli-gateway`.
+3. Create `/opt/claude-cli-gateway/.env` with Linux-style absolute paths.
+4. Log in to `claude` as the runtime user and verify `claude -v` works in that context.
+5. Run:
+
+   ```bash
+   sudo APP_DIR=/opt/claude-cli-gateway ./scripts/deploy-linux.sh
+   ```
+
+6. Validate:
+
+   ```bash
+   systemctl status claude-cli-gateway --no-pager
+   curl http://127.0.0.1:8080/livez
+   curl http://127.0.0.1:8080/readyz
+   ```
+
+Notes:
+
+- If your Node binary is not discoverable by `systemd`, replace `ExecStart` in `linux/claude-cli-gateway.service` with the full Node path.
+- The most common Linux blocker is Claude CLI authentication for the service user, not application code.
+- If Redis runs on another host, update `REDIS_URL` only; no code changes are required.
 
 ## Source notes
 
